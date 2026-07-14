@@ -10,7 +10,7 @@ pipeline {
     environment {
 
         IMAGE_NAME = "student-ecom"
-        DOCKERHUB_REPO = "daya9096/student-ecom"
+        DOCKERHUB_REPO = "kavya/student-ecom"
         IMAGE_TAG = "${BUILD_NUMBER}"
 
         MYSQL_DATABASE = "student_ecom_db"
