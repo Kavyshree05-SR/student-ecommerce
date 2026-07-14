@@ -10,7 +10,7 @@ pipeline {
     environment {
 
         IMAGE_NAME = "student-ecom"
-        DOCKERHUB_REPO = "kavya/student-ecom"
+        DOCKERHUB_REPO = "kavyarangnath/student-ecom"
         IMAGE_TAG = "${BUILD_NUMBER}"
 
         MYSQL_DATABASE = "student_ecom_db"
@@ -21,7 +21,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/daya9096/student-ecommerce.git'
+                    url: 'https://github.com/Kavyshree05-SR/student-ecommerce.git'
             }
         }
 
