@@ -25,7 +25,7 @@ services:
       retries: 10
 
   employee-app:
-    image: daya9096/student-ecom:latest
+    image: kavyarangnath/student-ecom:latest
     container_name: student-ecom
 
     depends_on:
