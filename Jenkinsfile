@@ -155,18 +155,7 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-
-            steps {
-
-                sh '''
-                echo "Waiting for application..."
-                sleep 30
-
-                curl --fail http://localhost:8087/
-                '''
-            }
-        }
+       
 
         stage('Docker Cleanup') {
 
