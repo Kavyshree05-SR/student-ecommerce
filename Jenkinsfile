@@ -20,7 +20,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/Kavyshree05-SR/student-ecommerce-web.git'
+                    url: 'https://github.com/Kavyshree05-SR/student-ecommerce.git'
             }
         }
 
