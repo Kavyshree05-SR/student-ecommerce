@@ -8,10 +8,9 @@ pipeline {
     }
 
     environment {
-
-        IMAGE_NAME = "student-ecom"
+        IMAGE_NAME     = "student-ecom"
         DOCKERHUB_REPO = "kavyarangnath/student-ecom"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG      = "${BUILD_NUMBER}"
 
         MYSQL_DATABASE = "student_ecom_db"
     }
@@ -21,7 +20,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/Kavyshree05-SR/student-ecommerce.git'
+                    url: 'https://github.com/Kavyshree05-SR/student-ecommerce-web.git'
             }
         }
 
@@ -46,18 +45,18 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-
                 withSonarQubeEnv('sonarqube') {
-
                     withCredentials([
-                        string(credentialsId: 'sonar',
-                               variable: 'SONAR_TOKEN')
+                        string(
+                            credentialsId: 'sonar',
+                            variable: 'SONAR_TOKEN'
+                        )
                     ]) {
 
                         sh '''
                         mvn sonar:sonar \
                         -Dsonar.projectKey=student-ecom \
-                        -Dsonar.projectName="student-ecom" \
+                        -Dsonar.projectName=student-ecom \
                         -Dsonar.token=$SONAR_TOKEN
                         '''
                     }
@@ -75,7 +74,7 @@ pipeline {
 
         stage('Package') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                sh 'mvn package -DskipTests'
             }
         }
 
@@ -83,45 +82,41 @@ pipeline {
             steps {
 
                 sh """
-                docker build \
-                -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
 
-                docker tag \
-                ${IMAGE_NAME}:${IMAGE_TAG} \
-                ${DOCKERHUB_REPO}:${IMAGE_TAG}
+                docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_REPO}:${IMAGE_TAG}
 
-                docker tag \
-                ${IMAGE_NAME}:${IMAGE_TAG} \
-                ${DOCKERHUB_REPO}:latest
+                docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERHUB_REPO}:latest
                 """
             }
         }
 
         stage('Push Docker Image') {
 
-    steps {
+            steps {
 
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'dockerhub-creds',
-                usernameVariable: 'DOCKER_USER',
-                passwordVariable: 'DOCKER_PASS'
-            )
-        ]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
 
-            sh '''
-            echo "$DOCKER_PASS" | docker login \
-            -u "$DOCKER_USER" \
-            --password-stdin
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login \
+                    -u "$DOCKER_USER" \
+                    --password-stdin
 
-            docker push $DOCKERHUB_REPO:$IMAGE_TAG
-            docker push $DOCKERHUB_REPO:latest
+                    docker push $DOCKERHUB_REPO:$IMAGE_TAG
+                    docker push $DOCKERHUB_REPO:latest
 
-            docker logout
-            '''
+                    docker logout
+                    '''
+                }
+            }
         }
-    }
-}
+
         stage('Deploy using Docker Compose') {
 
             steps {
@@ -135,17 +130,27 @@ pipeline {
                 ]) {
 
                     sh '''
-export MYSQL_DATABASE=employee_db
-export MYSQL_USER=$MYSQL_USER
-export MYSQL_PASSWORD=$MYSQL_PASSWORD
-export MYSQL_ROOT_PASSWORD=$MYSQL_PASSWORD
+                    export MYSQL_DATABASE=student_ecom_db
+                    export MYSQL_USER=$MYSQL_USER
+                    export MYSQL_PASSWORD=$MYSQL_PASSWORD
+                    export MYSQL_ROOT_PASSWORD=$MYSQL_PASSWORD
 
-docker-compose down --remove-orphans || true
+                    # Stop and remove old containers if they exist
+                    docker rm -f student-ecom || true
+                    docker rm -f mysql || true
 
-docker-compose pull
+                    # Remove old compose project
+                    docker-compose down --remove-orphans || true
 
-docker-compose up -d --force-recreate
-'''
+                    # Pull latest Docker Hub image
+                    docker-compose pull
+
+                    # Deploy latest containers
+                    docker-compose up -d --force-recreate
+
+                    # Show running containers
+                    docker ps
+                    '''
                 }
             }
         }
@@ -155,13 +160,10 @@ docker-compose up -d --force-recreate
             steps {
 
                 sh '''
-
                 echo "Waiting for application..."
-
                 sleep 30
 
                 curl --fail http://localhost:8087/
-
                 '''
             }
         }
@@ -171,11 +173,8 @@ docker-compose up -d --force-recreate
             steps {
 
                 sh '''
-
                 docker image prune -f
-
                 docker system df
-
                 '''
             }
         }
@@ -190,7 +189,6 @@ docker-compose up -d --force-recreate
             echo "===================================="
 
             sh 'docker ps'
-
         }
 
         failure {
@@ -200,13 +198,10 @@ docker-compose up -d --force-recreate
             echo "===================================="
 
             sh 'docker ps -a'
-
         }
 
         always {
-
             cleanWs()
-
         }
     }
 }
